@@ -5,11 +5,13 @@
 #include <ctype.h>
 #include <time.h>
 
+#include <omp.h>
+
 /* prototypes */
 void printUsage();
-int lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
+char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
 void generateRandomGame(char ** gameMatrix, int m, int n);
-void printGameMatrix(char ** gameMatrix, int m, int n);
+void printGameMatrix(char ** gameMatrix, int m, int n, int flag);
 
 /* main */
 int main(int argc, char **argv) {
@@ -34,19 +36,37 @@ int main(int argc, char **argv) {
 
     // alloc game matrix
     char ** gameMatrix =(char **) malloc(m * sizeof(char *));
-    for (int i = 0; i < n; i++) 
+    for (int i = 0; i < n; i++)
         gameMatrix[i] = (char *) malloc(n * sizeof(char));
 
     // begin game
     generateRandomGame(gameMatrix, m, n);
+    int flag = 0;
+    // neighbours
+    int nw, no, ne, w, c, e, sw, s, se;
+
     for (int i = 0; i < g; i++) {
+        #if DEBUG
         printf("generation %d\n", i);
-        printGameMatrix(gameMatrix, m, n);
+        printGameMatrix(gameMatrix, m, n, flag);
+        #endif
+        //#pragma omp parallel for
         for (int x = 0; x < m; x++) {
             for (int y = 0; y < n; y++) {
-                // do something
+              nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (flag+1)) > 0;
+              no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (flag+1)) > 0;
+              ne = (x == 0 || y == n-1) ? 0 : (gameMatrix[x-1][y+1] & (flag+1)) > 0;
+              w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (flag+1)) > 0;
+              c = (gameMatrix[x][y] & (flag+1)) > 0;
+              e = (y == n-1) ? 0 : (gameMatrix[x][y+1] & (flag+1)) > 0;
+              sw = (x == m-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (flag+1)) > 0;
+              s = (x == m-1) ? 0 : (gameMatrix[x+1][y] & (flag+1)) > 0;
+              se = (x == m-1 || y == n-1) ? 0 : (gameMatrix[x+1][y+1] & (flag+1)) > 0;
+              //printf("nw %d, n %d, ne %d, w %d, c %d, e %d, sw %d, s %d, se %d\n", nw, no, ne, w, c, e, sw, s, se);
+              gameMatrix[x][y] = (gameMatrix[x][y] % 2) + (lifeFunction(nw, no, ne, w, c, e, sw, s, se) << !flag);
             }
         }
+        flag = !flag;
     }
 
     return EXIT_SUCCESS;
@@ -62,19 +82,26 @@ void printUsage() {
 
 /**
  * here some detailed comments :)
- * 
- * . nw . n . ne 
+ *
+ * . nw . n . ne
  * .  w . c . e
  * . sw . s . se
  */
-int lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se) {
-
-
-    return 0;
+char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se) {
+    int living = nw + n + ne + w + e + sw + s + se;
+    if (c == 0) {
+      if (living == 3) return 1;
+      return 0;
+    }
+    else {
+      if (living < 2) return 0;
+      if (living > 3) return 0;
+      return 1;
+    }
 }
 
 void generateRandomGame(char ** gameMatrix, int m, int n) {
-    srand(time(NULL));
+    //srand(time(NULL));
     for (int x = 0; x < m; x++) {
         for (int y = 0; y < n; y++) {
             gameMatrix[x][y] = rand() % 2;
@@ -82,11 +109,11 @@ void generateRandomGame(char ** gameMatrix, int m, int n) {
     }
 }
 
-void printGameMatrix(char ** gameMatrix, int m, int n) {
+void printGameMatrix(char ** gameMatrix, int m, int n, int flag) {
     for (int x = 0; x < m; x++) {
         for (int y = 0; y < n; y++) {
-            printf("%d ", gameMatrix[x][y]);
+            printf("%d ", (gameMatrix[x][y] & (flag+1)) > 0);
         }
         printf("\n");
-    }  
+    }
 }
