@@ -14,6 +14,7 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
 void runGame(int width, int height, int generations);
 unsigned char ** allocateGameSpace(int width, int height);
 void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations);
 
 /* defines */
 #define for_x for (int x = 0; x < width; x++)
@@ -22,25 +23,9 @@ void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char sw
 
 /* main */
 int main(int argc, char **argv) {
-    // parse program options
-    int option = 0;
     int width = -1, height = -1, generations = -1;
 
-    while ((option = getopt(argc, argv, "m:n:g:")) != -1) {
-        switch (option) {
-            case 'm': width = atoi(optarg); break;
-            case 'n': height = atoi(optarg); break;
-            case 'g': generations = atoi(optarg); break;
-            default: printUsage();
-                exit(EXIT_FAILURE);
-        }
-    }
-
-    if (width == -1 || height == -1 || generations == -1) {
-        printUsage();
-        exit(EXIT_FAILURE);
-    }
-
+    parseProgramOptions(argc, argv, &width, &height, &generations);
     runGame(width, height, generations);
 
     return EXIT_SUCCESS;
@@ -138,4 +123,23 @@ unsigned char ** allocateGameSpace(int width, int height) {
         gameMatrix[x] = (unsigned char *) malloc(height * sizeof(unsigned char));
     }
     return gameMatrix;
+}
+
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations) {
+    int option = 0;
+
+    while ((option = getopt(argc, argv, "m:n:g:")) != -1) {
+        switch (option) {
+            case 'm': *width = atoi(optarg); break;
+            case 'n': *height = atoi(optarg); break;
+            case 'g': *generations = atoi(optarg); break;
+            default: printUsage();
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    if (*width == -1 || *height == -1 || *generations == -1) {
+        printUsage();
+        exit(EXIT_FAILURE);
+    }
 }
