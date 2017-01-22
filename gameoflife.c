@@ -15,6 +15,7 @@ void runGame(int width, int height, int generations);
 unsigned char ** allocateGameSpace(int width, int height);
 void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations);
+unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
 
 /* defines */
 #define for_x for (int x = 0; x < width; x++)
@@ -72,20 +73,7 @@ void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char sw
         s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
         se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
 
-        int alive = lifeFunction(nw, no, ne, w, c, e, sw, s, se);
-        if (switchValuesFlag) {
-            if (alive) {
-                gameMatrix[x][y] |= 1; 
-            } else {
-                gameMatrix[x][y] &= 2; 
-            }
-        } else {
-            if (alive) {
-                gameMatrix[x][y] |= 2;
-            } else {
-                gameMatrix[x][y] &= 1;
-            }
-        }
+        gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
     }
 }
 
@@ -109,8 +97,18 @@ unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, i
     }
 }
 
+unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag) {
+    if (switchValuesFlag) {
+        if (alive) return (currentCode | 1); 
+        return (currentCode & 2); 
+    } else {
+        if (alive) return (currentCode | 2);
+        return (currentCode & 1);
+    }
+}
+
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height) {
-    //srand(time(NULL));
+    srand(time(NULL));
     for_xy {
         gameMatrix[x][y] = rand() % 2;
     }
