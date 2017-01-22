@@ -10,9 +10,10 @@
 void printUsage();
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
-void printGameMatrix(unsigned char ** gameMatrix, int width, int height, int flag);
+void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 void runGame(int width, int height, int generations);
 unsigned char ** allocateGameSpace(int width, int height);
+void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 
 /* defines */
 #define for_x for (int x = 0; x < width; x++)
@@ -48,33 +49,19 @@ int main(int argc, char **argv) {
 /* functions */
 void runGame(int width, int height, int generations) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
-    int flag = 0;
-    int nw, no, ne, w, c, e, sw, s, se;
+    unsigned char switchValuesFlag = 0;
 
     generateRandomGame(gameMatrix, width, height);
     for (int i = 0; i < generations; i++) {
-        //#if DEBUG
+        #if DEBUG
         printf("generation %d\n", i);
-        printGameMatrix(gameMatrix, width, height, flag);
-        //#endif
-        //#pragma omp parallel for
-        for_xy {
-            nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (flag+1)) > 0;
-            no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (flag+1)) > 0;
-            ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (flag+1)) > 0;
-            w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (flag+1)) > 0;
-            c = (gameMatrix[x][y] & (flag+1)) > 0;
-            e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (flag+1)) > 0;
-            sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (flag+1)) > 0;
-            s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (flag+1)) > 0;
-            se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (flag+1)) > 0;
-            //printf("nw %d, n %d, ne %d, w %d, c %d, e %d, sw %d, s %d, se %d\n", nw, no, ne, w, c, e, sw, s, se);
-            gameMatrix[x][y] = (gameMatrix[x][y] % 2) + (lifeFunction(nw, no, ne, w, c, e, sw, s, se) << !flag);
-        }
-        flag = !flag;
-        //#if DEBUG
+        printGameMatrix(gameMatrix, width, height, switchValuesFlag);
+        #endif
+        evolve(gameMatrix, width, height, switchValuesFlag);
+        switchValuesFlag = !switchValuesFlag;
+        #if DEBUG
         usleep(200000);
-        //#endif
+        #endif
     }
 
 }
@@ -84,6 +71,24 @@ void printUsage() {
     printf("-m ... matrix width\n");
     printf("-n ... matrix height\n");
     printf("-g ... generations\n");
+}
+
+void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
+    int nw, no, ne, w, c, e, sw, s, se;
+
+    for_xy {
+        nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
+        no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
+        ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
+        w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
+        c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
+        e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
+        sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
+        s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
+        se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
+        //printf("nw %d, n %d, ne %d, w %d, c %d, e %d, sw %d, s %d, se %d\n", nw, no, ne, w, c, e, sw, s, se);
+        gameMatrix[x][y] = (gameMatrix[x][y] % 2) + (lifeFunction(nw, no, ne, w, c, e, sw, s, se) << !switchValuesFlag);
+    }
 }
 
 /**
@@ -113,11 +118,11 @@ void generateRandomGame(unsigned char ** gameMatrix, int width, int height) {
     }
 }
 
-void printGameMatrix(unsigned char ** gameMatrix, int width, int height, int flag) {
+void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
     printf("\033[H");
     for_x {
         for_y {
-            if ((gameMatrix[x][y] & (flag+1)) > 0) {
+            if ((gameMatrix[x][y] & (switchValuesFlag+1)) > 0) {
                 printf("X ");
             } else {
                 printf("  ");
