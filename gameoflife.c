@@ -32,7 +32,10 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 }
 
-/* functions */
+/*******************
+ * GAME  functions *
+ *******************/
+
 void runGame(int width, int height, int generations) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
@@ -50,13 +53,6 @@ void runGame(int width, int height, int generations) {
         #endif
     }
 
-}
-
-void printUsage() {
-    printf("Usage: gameoflife -m num -n num -g num\n");
-    printf("-m ... matrix width\n");
-    printf("-n ... matrix height\n");
-    printf("-g ... generations\n");
 }
 
 void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
@@ -107,6 +103,37 @@ unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char 
     }
 }
 
+/*******************
+ * OTHER functions *
+ *******************/
+ 
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations) {
+    int option = 0;
+
+    while ((option = getopt(argc, argv, "m:n:g:")) != -1) {
+        switch (option) {
+            case 'm': *width = atoi(optarg); break;
+            case 'n': *height = atoi(optarg); break;
+            case 'g': *generations = atoi(optarg); break;
+            default: printUsage();
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    if (*width == -1 || *height == -1 || *generations == -1) {
+        printUsage();
+        exit(EXIT_FAILURE);
+    }
+}
+
+unsigned char ** allocateGameSpace(int width, int height) {
+    unsigned char ** gameMatrix =(unsigned char **) malloc(width * sizeof(unsigned char *));
+    for_x {
+        gameMatrix[x] = (unsigned char *) malloc(height * sizeof(unsigned char));
+    }
+    return gameMatrix;
+}
+
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height) {
     srand(time(NULL));
     for_xy {
@@ -128,29 +155,9 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
     }
 }
 
-unsigned char ** allocateGameSpace(int width, int height) {
-    unsigned char ** gameMatrix =(unsigned char **) malloc(width * sizeof(unsigned char *));
-    for_x {
-        gameMatrix[x] = (unsigned char *) malloc(height * sizeof(unsigned char));
-    }
-    return gameMatrix;
-}
-
-void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations) {
-    int option = 0;
-
-    while ((option = getopt(argc, argv, "m:n:g:")) != -1) {
-        switch (option) {
-            case 'm': *width = atoi(optarg); break;
-            case 'n': *height = atoi(optarg); break;
-            case 'g': *generations = atoi(optarg); break;
-            default: printUsage();
-                exit(EXIT_FAILURE);
-        }
-    }
-
-    if (*width == -1 || *height == -1 || *generations == -1) {
-        printUsage();
-        exit(EXIT_FAILURE);
-    }
+void printUsage() {
+    printf("Usage: gameoflife -m num -n num -g num\n");
+    printf("-m ... matrix width\n");
+    printf("-n ... matrix height\n");
+    printf("-g ... generations\n");
 }
