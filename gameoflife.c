@@ -71,8 +71,21 @@ void evolve(unsigned char ** gameMatrix, int width, int height, unsigned char sw
         sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
         s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
         se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
-        //printf("nw %d, n %d, ne %d, w %d, c %d, e %d, sw %d, s %d, se %d\n", nw, no, ne, w, c, e, sw, s, se);
-        gameMatrix[x][y] = (gameMatrix[x][y] % 2) + (lifeFunction(nw, no, ne, w, c, e, sw, s, se) << !switchValuesFlag);
+
+        int alive = lifeFunction(nw, no, ne, w, c, e, sw, s, se);
+        if (switchValuesFlag) {
+            if (alive) {
+                gameMatrix[x][y] |= 1; 
+            } else {
+                gameMatrix[x][y] &= 2; 
+            }
+        } else {
+            if (alive) {
+                gameMatrix[x][y] |= 2;
+            } else {
+                gameMatrix[x][y] &= 1;
+            }
+        }
     }
 }
 
