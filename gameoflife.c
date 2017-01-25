@@ -15,14 +15,13 @@ unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, i
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
 
 /* game prototypes */
-void runGame(int width, int height, int generations);
-void runGameOMP(int width, int height, int generations, int numThreads);
-void runGameCilk(int width, int height, int generations, int numThreads);
+double runGame(int width, int height, int generations);
+double runGameOMP(int width, int height, int generations, int numThreads);
+double runGameCilk(int width, int height, int generations, int numThreads);
 
 /* game evolve prototypes */
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
-void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads);
-void evolve_cilk(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads);
+void evolve_parallel(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads);
 
 /* other prototypes */
 void printUsage();
@@ -40,32 +39,23 @@ double cilkTime();
 /* main */
 int main(int argc, char **argv) {
     int width = -1, height = -1, generations = -1, mode = -1, threads = -1;
-    struct timespec now, tmstart;
-    clock_gettime(CLOCK_REALTIME, &tmstart);
     parseProgramOptions(argc, argv, &width, &height, &generations, &mode, &threads);
 
-    double seconds = 0.0;
-
+    double time = 0;
     switch (mode) {
         case 0:
-        runGame(width, height, generations);
-        clock_gettime(CLOCK_REALTIME, &now);
-        seconds = (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
+        time = runGame(width, height, generations);
         break;
         case 1:
-        seconds = omp_get_wtime();
-        runGameOMP(width, height, generations, threads);
-        seconds = omp_get_wtime() - seconds;
+        time = runGameOMP(width, height, generations, threads);
         break;
         case 2:
-        seconds = cilkTime();
-        runGameCilk(width, height, generations, threads);
-        seconds = cilkTime() - seconds;
+        time = runGameCilk(width, height, generations, threads);
         default: 
         break;
     }
 
-    printf("time %fs\n", seconds);
+    printf("time %fs\n", time);
 
     return EXIT_SUCCESS;
 }
@@ -74,11 +64,13 @@ int main(int argc, char **argv) {
  * GAME  functions *
  *******************/
 
-void runGame(int width, int height, int generations) {
+double runGame(int width, int height, int generations) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
-
     generateRandomGame(gameMatrix, width, height);
+
+    struct timespec now, tmstart;
+    clock_gettime(CLOCK_REALTIME, &tmstart);
     for (int i = 0; i < generations; i++) {
         evolve_normal(gameMatrix, width, height, switchValuesFlag);
         switchValuesFlag = !switchValuesFlag;
@@ -88,18 +80,23 @@ void runGame(int width, int height, int generations) {
         usleep(200000);
         #endif
     }
+    clock_gettime(CLOCK_REALTIME, &now);
+    printf("prevent super optimized O3 magic haha %d\n", gameMatrix[0][0]);
+
+    return (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
 }
 
-void runGameOMP(int width, int height, int generations, int numThreads) {
+double runGameOMP(int width, int height, int generations, int numThreads) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
     generateRandomGame(gameMatrix, width, height);
 
+    double seconds = omp_get_wtime();
     #pragma omp parallel num_threads(numThreads) 
     {
         for (int i = 0; i < generations; i++) {
 
-            evolve_omp(gameMatrix, width, height, switchValuesFlag, numThreads);
+            evolve_parallel(gameMatrix, width, height, switchValuesFlag, omp_get_thread_num(), numThreads);
             #pragma omp barrier
 
             #pragma omp single
@@ -114,25 +111,28 @@ void runGameOMP(int width, int height, int generations, int numThreads) {
             #pragma omp barrier
         }
     }
+    return omp_get_wtime() - seconds;
 }
 
-void runGameCilk(int width, int height, int generations, int numThreads) {
+double runGameCilk(int width, int height, int generations, int numThreads) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
     generateRandomGame(gameMatrix, width, height);
 
+    double seconds = cilkTime();
     for (int i = 0; i < generations; i++) {
         cilk_for(int t = 0; t < numThreads; t++) {
-            evolve_cilk(gameMatrix, width, height, switchValuesFlag, t, numThreads);
+            evolve_parallel(gameMatrix, width, height, switchValuesFlag, t, numThreads);
         }
 
         switchValuesFlag = !switchValuesFlag;
-            #if DEBUG
+        #if DEBUG
         printf("generation %d\n", i);
         printGameMatrix(gameMatrix, width, height, switchValuesFlag);
         usleep(200000);
-            #endif
+        #endif
     }
+    return cilkTime() - seconds;
 }
 
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
@@ -141,20 +141,7 @@ void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned 
     }
 }
 
-void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads) {
-    int threadId = omp_get_thread_num();
-    int rowBlock = height / numThreads;
-    int rowStart = threadId * rowBlock;
-    int rowEnd = rowStart + rowBlock;
-
-    for_x {
-        for (int y = rowStart; y < rowEnd; y++) {
-            computeGameMatrix(gameMatrix, width, height, x, y, switchValuesFlag);
-        }
-    }
-}
-
-void evolve_cilk(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads) {
+void evolve_parallel(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads) {
     int rowBlock = height / numThreads;
     int rowStart = threadId * rowBlock;
     int rowEnd = rowStart + rowBlock;
