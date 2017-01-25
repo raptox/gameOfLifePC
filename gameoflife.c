@@ -30,6 +30,7 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
 unsigned char ** allocateGameSpace(int width, int height);
 void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads);
 double cilkTime();
+void showDebugInfo(int generation, unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 
 /* defines */
 #define for_x for (int x = 0; x < width; x++)
@@ -73,12 +74,8 @@ double runGame(int width, int height, int generations) {
     clock_gettime(CLOCK_REALTIME, &tmstart);
     for (int i = 0; i < generations; i++) {
         evolve_normal(gameMatrix, width, height, switchValuesFlag);
+        showDebugInfo(i, gameMatrix, width, height, switchValuesFlag);
         switchValuesFlag = !switchValuesFlag;
-        #if DEBUG
-        printf("generation %d\n", i);
-        printGameMatrix(gameMatrix, width, height, switchValuesFlag);
-        usleep(200000);
-        #endif
     }
     clock_gettime(CLOCK_REALTIME, &now);
     printf("prevent super optimized O3 magic haha %d\n", gameMatrix[0][0]);
@@ -101,12 +98,8 @@ double runGameOMP(int width, int height, int generations, int numThreads) {
 
             #pragma omp single
             {
+                showDebugInfo(i, gameMatrix, width, height, switchValuesFlag);
                 switchValuesFlag = !switchValuesFlag;
-                #if DEBUG
-                printf("generation %d\n", i);
-                printGameMatrix(gameMatrix, width, height, switchValuesFlag);
-                usleep(200000);
-                #endif
             }
             #pragma omp barrier
         }
@@ -124,13 +117,8 @@ double runGameCilk(int width, int height, int generations, int numThreads) {
         cilk_for(int t = 0; t < numThreads; t++) {
             evolve_parallel(gameMatrix, width, height, switchValuesFlag, t, numThreads);
         }
-
+        showDebugInfo(i, gameMatrix, width, height, switchValuesFlag);
         switchValuesFlag = !switchValuesFlag;
-        #if DEBUG
-        printf("generation %d\n", i);
-        printGameMatrix(gameMatrix, width, height, switchValuesFlag);
-        usleep(200000);
-        #endif
     }
     return cilkTime() - seconds;
 }
@@ -297,4 +285,12 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
 double cilkTime() {
     struct timeval now; gettimeofday(&now,NULL);
     return (double)(((long double)now.tv_usec + (long double)now.tv_sec*1000000) / 1000000);
+}
+
+void showDebugInfo(int generation, unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
+    #if DEBUG
+    printf("generation %d\n", generation);
+    printGameMatrix(gameMatrix, width, height, switchValuesFlag);
+    usleep(200000);
+    #endif
 }
