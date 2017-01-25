@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <time.h>
+#include <sys/time.h>
 #include <omp.h>
 #include <cilk/cilk.h>
 #include <cilk/cilk_api.h>
@@ -28,6 +29,7 @@ void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
 void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 unsigned char ** allocateGameSpace(int width, int height);
 void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads);
+double cilkTime();
 
 /* defines */
 #define for_x for (int x = 0; x < width; x++)
@@ -41,22 +43,29 @@ int main(int argc, char **argv) {
     clock_gettime(CLOCK_REALTIME, &tmstart);
     parseProgramOptions(argc, argv, &width, &height, &generations, &mode, &threads);
 
+    double seconds = 0.0;
+
     switch (mode) {
         case 0:
             runGame(width, height, generations);
+            clock_gettime(CLOCK_REALTIME, &now);
+            seconds = (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
             break;
         case 1:
+            seconds = omp_get_wtime();
             runGameOMP(width, height, generations, threads);
+            seconds = omp_get_wtime() - seconds;
             break;
         case 2:
+            seconds = cilkTime();
             runGameCilk(width, height, generations, threads);
+            seconds = cilkTime() - seconds;
         default: 
             break;
     }
 
-    clock_gettime(CLOCK_REALTIME, &now);
-    double seconds = (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
     printf("time %fs\n", seconds);
+
     return EXIT_SUCCESS;
 }
 
@@ -316,4 +325,9 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
         }
         printf("\n");
     }
+}
+
+double cilkTime() {
+    struct timeval now; gettimeofday(&now,NULL);
+    return (double)(((long double)now.tv_usec + (long double)now.tv_sec*1000000) / 1000000);
 }
