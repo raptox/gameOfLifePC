@@ -47,21 +47,21 @@ int main(int argc, char **argv) {
 
     switch (mode) {
         case 0:
-            runGame(width, height, generations);
-            clock_gettime(CLOCK_REALTIME, &now);
-            seconds = (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
-            break;
+        runGame(width, height, generations);
+        clock_gettime(CLOCK_REALTIME, &now);
+        seconds = (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
+        break;
         case 1:
-            seconds = omp_get_wtime();
-            runGameOMP(width, height, generations, threads);
-            seconds = omp_get_wtime() - seconds;
-            break;
+        seconds = omp_get_wtime();
+        runGameOMP(width, height, generations, threads);
+        seconds = omp_get_wtime() - seconds;
+        break;
         case 2:
-            seconds = cilkTime();
-            runGameCilk(width, height, generations, threads);
-            seconds = cilkTime() - seconds;
+        seconds = cilkTime();
+        runGameCilk(width, height, generations, threads);
+        seconds = cilkTime() - seconds;
         default: 
-            break;
+        break;
     }
 
     printf("time %fs\n", seconds);
@@ -120,37 +120,35 @@ void runGameCilk(int width, int height, int generations, int numThreads) {
     unsigned char switchValuesFlag = 0;
     generateRandomGame(gameMatrix, width, height);
 
-        for (int i = 0; i < generations; i++) {
-            cilk_for(int t = 0; t < numThreads; t++) {
-                evolve_cilk(gameMatrix, width, height, switchValuesFlag, t, numThreads);
-            }
-
-            switchValuesFlag = !switchValuesFlag;
-            #if DEBUG
-            printf("generation %d\n", i);
-            printGameMatrix(gameMatrix, width, height, switchValuesFlag);
-            usleep(200000);
-            #endif
+    for (int i = 0; i < generations; i++) {
+        cilk_for(int t = 0; t < numThreads; t++) {
+            evolve_cilk(gameMatrix, width, height, switchValuesFlag, t, numThreads);
         }
+
+        switchValuesFlag = !switchValuesFlag;
+            #if DEBUG
+        printf("generation %d\n", i);
+        printGameMatrix(gameMatrix, width, height, switchValuesFlag);
+        usleep(200000);
+            #endif
+    }
 }
 
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
     int nw, no, ne, w, c, e, sw, s, se;
-        
-    for_x {
-        for_y {
-            nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
-            no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
-            ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
-            w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
-            c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
-            e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
-            sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
-            s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
-            se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
 
-            gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
-        }
+    for_xy {
+        nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
+        no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
+        ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
+        w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
+        c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
+        e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
+        sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
+        s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
+        se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
+
+        gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
     }
 }
 
@@ -213,12 +211,12 @@ unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, i
     if (c == 0) {
       if (living == 3) return 1;
       return 0;
-    }
-    else {
+  }
+  else {
       if (living < 2) return 0;
       if (living > 3) return 0;
       return 1;
-    }
+  }
 }
 
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag) {
@@ -247,7 +245,7 @@ void parseProgramOptions(int argc, char **argv, int * width, int * height, int *
             case 'm': *mode = atoi(optarg); break;
             case 't': *threads = atoi(optarg); break;
             default: printUsage();
-                exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -262,15 +260,14 @@ void parseProgramOptions(int argc, char **argv, int * width, int * height, int *
     if (*mode == 1 || *mode == 2) {
         switch (*mode) {
             case 1:
-                maxThreads = omp_get_max_threads();
-                break;
+            maxThreads = omp_get_max_threads();
+            break;
             case 2:
-                maxThreads = __cilkrts_get_nworkers();
-                break;
+            maxThreads = __cilkrts_get_nworkers();
+            break;
             default:
-                break;
+            break;
         }
-
 
         if (*threads == -1) {
             printf("no -t option, using max number of threads\n");
