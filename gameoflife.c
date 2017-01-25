@@ -5,19 +5,29 @@
 #include <ctype.h>
 #include <time.h>
 #include <omp.h>
+#include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
 
-/* prototypes */
-void printUsage();
+/* game function prototypes */
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
-void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
-void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
+unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
+
+/* game prototypes */
 void runGame(int width, int height, int generations);
 void runGameOMP(int width, int height, int generations, int numThreads);
-unsigned char ** allocateGameSpace(int width, int height);
+void runGameCilk(int width, int height, int generations, int numThreads);
+
+/* game evolve prototypes */
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads);
+void evolve_cilk(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads);
+
+/* other prototypes */
+void printUsage();
+void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
+void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
+unsigned char ** allocateGameSpace(int width, int height);
 void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads);
-unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
 
 /* defines */
 #define for_x for (int x = 0; x < width; x++)
@@ -38,6 +48,8 @@ int main(int argc, char **argv) {
         case 1:
             runGameOMP(width, height, generations, threads);
             break;
+        case 2:
+            runGameCilk(width, height, generations, threads);
         default: 
             break;
     }
@@ -94,6 +106,25 @@ void runGameOMP(int width, int height, int generations, int numThreads) {
     }
 }
 
+void runGameCilk(int width, int height, int generations, int numThreads) {
+    unsigned char ** gameMatrix = allocateGameSpace(width, height);
+    unsigned char switchValuesFlag = 0;
+    generateRandomGame(gameMatrix, width, height);
+
+        for (int i = 0; i < generations; i++) {
+            cilk_for(int t = 0; t < numThreads; t++) {
+                evolve_cilk(gameMatrix, width, height, switchValuesFlag, t, numThreads);
+            }
+
+            switchValuesFlag = !switchValuesFlag;
+            #if DEBUG
+            printf("generation %d\n", i);
+            printGameMatrix(gameMatrix, width, height, switchValuesFlag);
+            usleep(200000);
+            #endif
+        }
+}
+
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
     int nw, no, ne, w, c, e, sw, s, se;
         
@@ -121,7 +152,29 @@ void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned cha
     int rowStart = threadId * rowBlock;
     int rowEnd = rowStart + rowBlock;
 
-    //printf("start %d, end %d, block %d\n", rowStart, rowEnd, rowBlock);
+    for_x {
+        for (int y = rowStart; y < rowEnd; y++) {
+            nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
+            no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
+            ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
+            w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
+            c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
+            e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
+            sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
+            s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
+            se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
+
+            gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
+        }
+    }
+}
+
+void evolve_cilk(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads) {
+    int nw, no, ne, w, c, e, sw, s, se;
+    int rowBlock = height / numThreads;
+    int rowStart = threadId * rowBlock;
+    int rowEnd = rowStart + rowBlock;
+
     for_x {
         for (int y = rowStart; y < rowEnd; y++) {
             nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
@@ -174,7 +227,7 @@ unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char 
  *******************/
 
 void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads) {
-    int maxThreads = omp_get_max_threads();
+    int maxThreads = 0;
     int option = 0;
 
     while ((option = getopt(argc, argv, "w:h:g:m:t:")) != -1) {
@@ -193,11 +246,23 @@ void parseProgramOptions(int argc, char **argv, int * width, int * height, int *
         printUsage();
     }
 
-    if (*mode < 0 || *mode > 1) {
+    if (*mode < 0 || *mode > 2) {
         printUsage();
     }
 
     if (*mode == 1 || *mode == 2) {
+        switch (*mode) {
+            case 1:
+                maxThreads = omp_get_max_threads();
+                break;
+            case 2:
+                maxThreads = __cilkrts_get_nworkers();
+                break;
+            default:
+                break;
+        }
+
+
         if (*threads == -1) {
             printf("no -t option, using max number of threads\n");
             printf("max number of available threads: %d\n", maxThreads);
