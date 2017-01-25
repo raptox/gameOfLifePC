@@ -11,10 +11,11 @@ void printUsage();
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
 void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
-void runGame(int width, int height, int generations, int mode);
+void runGame(int width, int height, int generations);
+void runGameOMP(int width, int height, int generations);
 unsigned char ** allocateGameSpace(int width, int height);
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
-void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
+void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads);
 void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode);
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
 
@@ -29,7 +30,18 @@ int main(int argc, char **argv) {
     struct timespec now, tmstart;
     clock_gettime(CLOCK_REALTIME, &tmstart);
     parseProgramOptions(argc, argv, &width, &height, &generations, &mode);
-    runGame(width, height, generations, mode);
+
+    switch (mode) {
+        case 0:
+            runGame(width, height, generations);
+            break;
+        case 1:
+            runGameOMP(width, height, generations);
+            break;
+        default: 
+            break;
+    }
+
     clock_gettime(CLOCK_REALTIME, &now);
     double seconds = (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
     printf("time %fs\n", seconds);
@@ -40,33 +52,48 @@ int main(int argc, char **argv) {
  * GAME  functions *
  *******************/
 
-void runGame(int width, int height, int generations, int mode) {
+void runGame(int width, int height, int generations) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
 
     generateRandomGame(gameMatrix, width, height);
     for (int i = 0; i < generations; i++) {
+        evolve_normal(gameMatrix, width, height, switchValuesFlag);
+        switchValuesFlag = !switchValuesFlag;
         #if DEBUG
         printf("generation %d\n", i);
         printGameMatrix(gameMatrix, width, height, switchValuesFlag);
-        #endif
-        switch (mode) {
-            case 0: 
-                evolve_normal(gameMatrix, width, height, switchValuesFlag);
-                break;
-            case 1:
-                evolve_omp(gameMatrix, width, height, switchValuesFlag);
-                break;
-            default:
-                break;
-        }
-        
-        switchValuesFlag = !switchValuesFlag;
-        #if DEBUG
         usleep(200000);
         #endif
     }
+}
 
+void runGameOMP(int width, int height, int generations) {
+    unsigned char ** gameMatrix = allocateGameSpace(width, height);
+    unsigned char switchValuesFlag = 0;
+    int maxThreads = omp_get_max_threads();
+    printf("using %d threads", maxThreads);
+    generateRandomGame(gameMatrix, width, height);
+
+    #pragma omp parallel num_threads(maxThreads) 
+    {
+        for (int i = 0; i < generations; i++) {
+
+            evolve_omp(gameMatrix, width, height, switchValuesFlag, maxThreads);
+            #pragma omp barrier
+
+            #pragma omp single
+            {
+                switchValuesFlag = !switchValuesFlag;
+                #if DEBUG
+                printf("generation %d\n", i);
+                printGameMatrix(gameMatrix, width, height, switchValuesFlag);
+                usleep(200000);
+                #endif
+            }
+            #pragma omp barrier
+        }
+    }
 }
 
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
@@ -89,12 +116,16 @@ void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned 
     }
 }
 
-void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
+void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads) {
     int nw, no, ne, w, c, e, sw, s, se;
-        
-    #pragma omp parallel for
+    int threadId = omp_get_thread_num();
+    int rowBlock = height / numThreads;
+    int rowStart = threadId * rowBlock;
+    int rowEnd = rowStart + rowBlock;
+
+    //printf("start %d, end %d, block %d\n", rowStart, rowEnd, rowBlock);
     for_x {
-        for_y {
+        for (int y = rowStart; y < rowEnd; y++) {
             nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
             no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
             ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
