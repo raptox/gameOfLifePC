@@ -12,11 +12,11 @@ unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, i
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
 void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 void runGame(int width, int height, int generations);
-void runGameOMP(int width, int height, int generations);
+void runGameOMP(int width, int height, int generations, int numThreads);
 unsigned char ** allocateGameSpace(int width, int height);
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads);
-void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode);
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads);
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
 
 /* defines */
@@ -26,17 +26,17 @@ unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char 
 
 /* main */
 int main(int argc, char **argv) {
-    int width = -1, height = -1, generations = -1, mode = -1;
+    int width = -1, height = -1, generations = -1, mode = -1, threads = -1;
     struct timespec now, tmstart;
     clock_gettime(CLOCK_REALTIME, &tmstart);
-    parseProgramOptions(argc, argv, &width, &height, &generations, &mode);
+    parseProgramOptions(argc, argv, &width, &height, &generations, &mode, &threads);
 
     switch (mode) {
         case 0:
             runGame(width, height, generations);
             break;
         case 1:
-            runGameOMP(width, height, generations);
+            runGameOMP(width, height, generations, threads);
             break;
         default: 
             break;
@@ -68,18 +68,16 @@ void runGame(int width, int height, int generations) {
     }
 }
 
-void runGameOMP(int width, int height, int generations) {
+void runGameOMP(int width, int height, int generations, int numThreads) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
-    int maxThreads = omp_get_max_threads();
-    printf("using %d threads", maxThreads);
     generateRandomGame(gameMatrix, width, height);
 
-    #pragma omp parallel num_threads(maxThreads) 
+    #pragma omp parallel num_threads(numThreads) 
     {
         for (int i = 0; i < generations; i++) {
 
-            evolve_omp(gameMatrix, width, height, switchValuesFlag, maxThreads);
+            evolve_omp(gameMatrix, width, height, switchValuesFlag, numThreads);
             #pragma omp barrier
 
             #pragma omp single
@@ -175,15 +173,17 @@ unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char 
  * OTHER functions *
  *******************/
 
-void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode) {
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads) {
+    int maxThreads = omp_get_max_threads();
     int option = 0;
 
-    while ((option = getopt(argc, argv, "w:h:g:m:")) != -1) {
+    while ((option = getopt(argc, argv, "w:h:g:m:t:")) != -1) {
         switch (option) {
             case 'w': *width = atoi(optarg); break;
             case 'h': *height = atoi(optarg); break;
             case 'g': *generations = atoi(optarg); break;
             case 'm': *mode = atoi(optarg); break;
+            case 't': *threads = atoi(optarg); break;
             default: printUsage();
                 exit(EXIT_FAILURE);
         }
@@ -191,12 +191,26 @@ void parseProgramOptions(int argc, char **argv, int * width, int * height, int *
 
     if (*width == -1 || *height == -1 || *generations == -1 || *mode == -1) {
         printUsage();
-        exit(EXIT_FAILURE);
     }
 
     if (*mode < 0 || *mode > 1) {
         printUsage();
-        exit(EXIT_FAILURE);
+    }
+
+    if (*mode == 1 || *mode == 2) {
+        if (*threads == -1) {
+            printf("no -t option, using max number of threads\n");
+            printf("max number of available threads: %d\n", maxThreads);
+            *threads = maxThreads;
+        } else if (*threads > maxThreads) {
+            fprintf(stderr, "err: you cannot use more than max number of threads\n");
+            printUsage();
+        }
+
+        if ((*height % *threads) != 0) {
+            fprintf(stderr, "height is not dividable by number of threads\n");
+            printUsage();
+        }
     }
 }
 
@@ -206,6 +220,8 @@ void printUsage() {
     printf("-h ... matrix height\n");
     printf("-g ... generations\n");
     printf("-m ... mode (0=normal, 1=openmp, 2=...)\n");
+    printf("NOTE: when using openmp/cilk then height must be dividable through the number of threads\n");
+    exit(EXIT_FAILURE);
 }
 
 unsigned char ** allocateGameSpace(int width, int height) {
@@ -233,6 +249,6 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
                 printf("  ");
             }
         }
-        printf("\033[E");
+        printf("\n");
     }
 }
