@@ -10,6 +10,7 @@
 #include <cilk/cilk_api.h>
 
 /* game function prototypes */
+void computeGameMatrix(unsigned char ** gameMatrix, int width, int height, int x, int y, unsigned char switchValuesFlag);
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
 
@@ -135,25 +136,12 @@ void runGameCilk(int width, int height, int generations, int numThreads) {
 }
 
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
-    int nw, no, ne, w, c, e, sw, s, se;
-
     for_xy {
-        nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
-        no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
-        ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
-        w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
-        c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
-        e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
-        sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
-        s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
-        se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
-
-        gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
+        computeGameMatrix(gameMatrix, width, height, x, y, switchValuesFlag);
     }
 }
 
 void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int numThreads) {
-    int nw, no, ne, w, c, e, sw, s, se;
     int threadId = omp_get_thread_num();
     int rowBlock = height / numThreads;
     int rowStart = threadId * rowBlock;
@@ -161,42 +149,37 @@ void evolve_omp(unsigned char ** gameMatrix, int width, int height, unsigned cha
 
     for_x {
         for (int y = rowStart; y < rowEnd; y++) {
-            nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
-            no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
-            ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
-            w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
-            c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
-            e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
-            sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
-            s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
-            se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
-
-            gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
+            computeGameMatrix(gameMatrix, width, height, x, y, switchValuesFlag);
         }
     }
 }
 
 void evolve_cilk(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag, int threadId, int numThreads) {
-    int nw, no, ne, w, c, e, sw, s, se;
     int rowBlock = height / numThreads;
     int rowStart = threadId * rowBlock;
     int rowEnd = rowStart + rowBlock;
 
     for_x {
         for (int y = rowStart; y < rowEnd; y++) {
-            nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
-            no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
-            ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
-            w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
-            c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
-            e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
-            sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
-            s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
-            se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
-
-            gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
+            computeGameMatrix(gameMatrix, width, height, x, y, switchValuesFlag);
         }
     }
+}
+
+void computeGameMatrix(unsigned char ** gameMatrix, int width, int height, int x, int y, unsigned char switchValuesFlag) {
+    int nw, no, ne, w, c, e, sw, s, se;
+
+    nw = (x == 0 || y == 0) ? 0 : (gameMatrix[x-1][y-1] & (switchValuesFlag+1)) > 0;
+    no = (x == 0) ? 0 : (gameMatrix[x-1][y] & (switchValuesFlag+1)) > 0;
+    ne = (x == 0 || y == height-1) ? 0 : (gameMatrix[x-1][y+1] & (switchValuesFlag+1)) > 0;
+    w = (y == 0) ? 0 : (gameMatrix[x][y-1] & (switchValuesFlag+1)) > 0;
+    c = (gameMatrix[x][y] & (switchValuesFlag+1)) > 0;
+    e = (y == height-1) ? 0 : (gameMatrix[x][y+1] & (switchValuesFlag+1)) > 0;
+    sw = (x == width-1 || y == 0) ? 0 : (gameMatrix[x+1][y-1] & (switchValuesFlag+1)) > 0;
+    s = (x == width-1) ? 0 : (gameMatrix[x+1][y] & (switchValuesFlag+1)) > 0;
+    se = (x == width-1 || y == height-1) ? 0 : (gameMatrix[x+1][y+1] & (switchValuesFlag+1)) > 0;
+
+    gameMatrix[x][y] = setValuesCode(gameMatrix[x][y], lifeFunction(nw, no, ne, w, c, e, sw, s, se), switchValuesFlag);
 }
 
 /**
