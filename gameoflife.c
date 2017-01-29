@@ -13,7 +13,7 @@
 void computeGameMatrix(unsigned char ** gameMatrix, int width, int height, int x, int y, unsigned char switchValuesFlag);
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
-unsigned char checkResult(unsigned char ** gameMatrix, int width, int height, int generations);
+void checkResult(unsigned char ** gameMatrix, int width, int height, int generations);
 
 /* game prototypes */
 double runGame(int width, int height, int generations);
@@ -107,11 +107,7 @@ double runGameOMP(int width, int height, int generations, int numThreads, int ve
     }
 
     if (verification == 1) {
-        if  (checkResult(gameMatrix, width, height, generations)) {
-            printf("-- result correct\n");
-        } else {
-            printf("-- result INcorrect\n");
-        }
+        checkResult(gameMatrix, width, height, generations);
     }
 
     return omp_get_wtime() - seconds;
@@ -132,17 +128,13 @@ double runGameCilk(int width, int height, int generations, int numThreads, int v
     }
 
     if (verification == 1) {
-        if  (checkResult(gameMatrix, width, height, generations) == 1) {
-            printf("-- result correct\n");
-        } else {
-            printf("-- result INcorrect\n");
-        }
+        checkResult(gameMatrix, width, height, generations);
     }
 
     return cilkTime() - seconds;
 }
 
-unsigned char checkResult(unsigned char ** gameMatrix, int width, int height, int generations) {
+void checkResult(unsigned char ** gameMatrix, int width, int height, int generations) {
     unsigned char ** verificationMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
     generateRandomGame(verificationMatrix, width, height);
@@ -153,14 +145,19 @@ unsigned char checkResult(unsigned char ** gameMatrix, int width, int height, in
         switchValuesFlag = !switchValuesFlag;
     }
 
+    unsigned char flag = 1;
     // compare gameMatrix to verificationMatrix
     for_xy {
         if (gameMatrix[x][y] != verificationMatrix[x][y]) {
-            return 0;
+            flag = 0;
         }
     }
 
-    return 1;
+    if (flag) {
+        printf("-- result correct\n");
+    } else {
+        printf("-- result INcorrect\n");
+    }
 }
 
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
