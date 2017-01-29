@@ -13,11 +13,12 @@
 void computeGameMatrix(unsigned char ** gameMatrix, int width, int height, int x, int y, unsigned char switchValuesFlag);
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se);
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag);
+unsigned char checkResult(unsigned char ** gameMatrix, int width, int height, int generations);
 
 /* game prototypes */
 double runGame(int width, int height, int generations);
-double runGameOMP(int width, int height, int generations, int numThreads);
-double runGameCilk(int width, int height, int generations, int numThreads);
+double runGameOMP(int width, int height, int generations, int numThreads, int verification);
+double runGameCilk(int width, int height, int generations, int numThreads, int verification);
 
 /* game evolve prototypes */
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
@@ -28,7 +29,7 @@ void printUsage();
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height);
 void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 unsigned char ** allocateGameSpace(int width, int height);
-void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads);
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads, int * verification);
 double cilkTime();
 void showDebugInfo(int generation, unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag);
 
@@ -39,8 +40,8 @@ void showDebugInfo(int generation, unsigned char ** gameMatrix, int width, int h
 
 /* main */
 int main(int argc, char **argv) {
-    int width = -1, height = -1, generations = -1, mode = -1, threads = -1;
-    parseProgramOptions(argc, argv, &width, &height, &generations, &mode, &threads);
+    int width = -1, height = -1, generations = -1, mode = -1, threads = -1, verification = -1;
+    parseProgramOptions(argc, argv, &width, &height, &generations, &mode, &threads, &verification);
 
     double time = 0;
     switch (mode) {
@@ -48,10 +49,10 @@ int main(int argc, char **argv) {
         time = runGame(width, height, generations);
         break;
         case 1:
-        time = runGameOMP(width, height, generations, threads);
+        time = runGameOMP(width, height, generations, threads, verification);
         break;
         case 2:
-        time = runGameCilk(width, height, generations, threads);
+        time = runGameCilk(width, height, generations, threads, verification);
         default: 
         break;
     }
@@ -83,7 +84,7 @@ double runGame(int width, int height, int generations) {
     return (double)((now.tv_sec+now.tv_nsec*1e-9) - (double)(tmstart.tv_sec+tmstart.tv_nsec*1e-9));
 }
 
-double runGameOMP(int width, int height, int generations, int numThreads) {
+double runGameOMP(int width, int height, int generations, int numThreads, int verification) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
     generateRandomGame(gameMatrix, width, height);
@@ -104,10 +105,19 @@ double runGameOMP(int width, int height, int generations, int numThreads) {
             #pragma omp barrier
         }
     }
+
+    if (verification == 1) {
+        if  (checkResult(gameMatrix, width, height, generations)) {
+            printf("-- result correct\n");
+        } else {
+            printf("-- result INcorrect\n");
+        }
+    }
+
     return omp_get_wtime() - seconds;
 }
 
-double runGameCilk(int width, int height, int generations, int numThreads) {
+double runGameCilk(int width, int height, int generations, int numThreads, int verification) {
     unsigned char ** gameMatrix = allocateGameSpace(width, height);
     unsigned char switchValuesFlag = 0;
     generateRandomGame(gameMatrix, width, height);
@@ -120,7 +130,37 @@ double runGameCilk(int width, int height, int generations, int numThreads) {
         showDebugInfo(i, gameMatrix, width, height, switchValuesFlag);
         switchValuesFlag = !switchValuesFlag;
     }
+
+    if (verification == 1) {
+        if  (checkResult(gameMatrix, width, height, generations) == 1) {
+            printf("-- result correct\n");
+        } else {
+            printf("-- result INcorrect\n");
+        }
+    }
+
     return cilkTime() - seconds;
+}
+
+unsigned char checkResult(unsigned char ** gameMatrix, int width, int height, int generations) {
+    unsigned char ** verificationMatrix = allocateGameSpace(width, height);
+    unsigned char switchValuesFlag = 0;
+    generateRandomGame(verificationMatrix, width, height);
+
+    // evolve verfication matrix
+    for (int i = 0; i < generations; i++) {
+        evolve_normal(verificationMatrix, width, height, switchValuesFlag);
+        switchValuesFlag = !switchValuesFlag;
+    }
+
+    // compare gameMatrix to verificationMatrix
+    for_xy {
+        if (gameMatrix[x][y] != verificationMatrix[x][y]) {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 void evolve_normal(unsigned char ** gameMatrix, int width, int height, unsigned char switchValuesFlag) {
@@ -191,23 +231,29 @@ unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char 
  * OTHER functions *
  *******************/
 
-void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads) {
+void parseProgramOptions(int argc, char **argv, int * width, int * height, int * generations, int * mode, int * threads, int * verification) {
     int maxThreads = 0;
     int option = 0;
 
-    while ((option = getopt(argc, argv, "w:h:g:m:t:")) != -1) {
+    while ((option = getopt(argc, argv, "w:h:g:m:t:v")) != -1) {
         switch (option) {
             case 'w': *width = atoi(optarg); break;
             case 'h': *height = atoi(optarg); break;
             case 'g': *generations = atoi(optarg); break;
             case 'm': *mode = atoi(optarg); break;
             case 't': *threads = atoi(optarg); break;
+            case 'v': *verification = 1; break;
             default: printUsage();
             exit(EXIT_FAILURE);
         }
     }
 
     if (*width == -1 || *height == -1 || *generations == -1 || *mode == -1) {
+        printUsage();
+    }
+
+    if (*width < 0 || *height < 0 || *generations < 0) {
+        fprintf(stderr, "err: use positive numbers for width, height and generations\n");
         printUsage();
     }
 
@@ -234,6 +280,9 @@ void parseProgramOptions(int argc, char **argv, int * width, int * height, int *
         } else if (*threads > maxThreads) {
             fprintf(stderr, "err: you cannot use more than max number of threads\n");
             printUsage();
+        } else if (*threads < 0) {
+            fprintf(stderr, "err: use positive number of threads\n");
+            printUsage(); 
         }
 
         if ((*height % *threads) != 0) {
@@ -244,11 +293,13 @@ void parseProgramOptions(int argc, char **argv, int * width, int * height, int *
 }
 
 void printUsage() {
-    printf("Usage: gameoflife -w num -h num -g num -m num\n");
+    printf("Usage: gameoflife -w num -h num -g num -m num -t num -v\n");
     printf("-w ... matrix width\n");
     printf("-h ... matrix height\n");
     printf("-g ... generations\n");
-    printf("-m ... mode (0=normal, 1=openmp, 2=...)\n");
+    printf("-m ... mode (0=normal, 1=openmp, 2=cilk)\n");
+    printf("-t ... number of threads to be used\n");
+    printf("-v ... enable verification with seq solution\n");
     printf("NOTE: when using openmp/cilk then height must be dividable through the number of threads\n");
     exit(EXIT_FAILURE);
 }
@@ -262,7 +313,7 @@ unsigned char ** allocateGameSpace(int width, int height) {
 }
 
 void generateRandomGame(unsigned char ** gameMatrix, int width, int height) {
-    //srand(time(NULL));
+    srand(100);
     for_xy {
         gameMatrix[x][y] = rand() % 2;
     }
@@ -273,7 +324,7 @@ void printGameMatrix(unsigned char ** gameMatrix, int width, int height, unsigne
     for_x {
         for_y {
             if ((gameMatrix[x][y] & (switchValuesFlag+1)) > 0) {
-                printf("X ");
+                printf("\033[07m  \033[m");
             } else {
                 printf("  ");
             }
