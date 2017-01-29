@@ -1,0 +1,325 @@
+nr. 1
+240x240
+Thu Jan 26 08:59:37 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 1.376781s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 49.732773s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 0.732472s
+nr. 2
+480x480
+Thu Jan 26 09:00:29 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 5.520610s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 49.377675s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 1.536878s
+nr. 3
+720x720
+Thu Jan 26 09:01:26 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 12.442881s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 48.881414s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 1.326516s
+nr. 4
+960x960
+Thu Jan 26 09:02:28 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 22.057501s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 52.618838s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 1.887497s
+nr. 5
+1200x1200
+Thu Jan 26 09:03:45 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 34.585710s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 57.370412s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 2.778974s
+nr. 6
+1440x1440
+Thu Jan 26 09:05:20 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 49.836675s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 62.099652s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 3.676714s
+nr. 7
+1680x1680
+Thu Jan 26 09:07:16 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 67.747696s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 57.519599s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 4.632495s
+nr. 8
+1920x1920
+Thu Jan 26 09:09:26 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 88.733793s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 60.573746s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 5.810517s
+nr. 9
+2160x2160
+Thu Jan 26 09:12:01 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 112.196949s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 74.333672s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 7.780861s
+nr. 10
+2400x2400
+Thu Jan 26 09:15:16 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 136.144893s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 76.641923s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 9.744955s
+nr. 11
+2640x2640
+Thu Jan 26 09:18:59 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 166.922526s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 71.437414s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 10.310797s
+nr. 12
+2880x2880
+Thu Jan 26 09:23:08 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 199.668671s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 72.399051s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 11.078370s
+nr. 13
+3120x3120
+Thu Jan 26 09:27:51 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 233.681988s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 88.007617s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 17.049278s
+nr. 14
+3360x3360
+Thu Jan 26 09:33:30 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 267.389580s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 84.864087s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 16.259842s
+nr. 15
+3600x3600
+Thu Jan 26 09:39:40 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 310.119725s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 102.925214s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 22.477121s
+nr. 16
+3840x3840
+Thu Jan 26 09:46:56 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 352.923802s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 86.412094s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 21.586824s
+nr. 17
+4080x4080
+Thu Jan 26 09:54:38 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 418.809353s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 108.230170s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 31.599100s
+nr. 18
+4320x4320
+Thu Jan 26 10:03:57 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 445.245845s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 92.197237s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 28.031264s
+nr. 19
+4560x4560
+Thu Jan 26 10:13:23 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 493.225647s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 112.909692s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 30.773756s
+nr. 20
+4800x4800
+Thu Jan 26 10:24:01 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 3
+time 548.194184s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 115.974487s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 35.439745s
+nr. 21
+5040x5040
+Thu Jan 26 10:35:42 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 600.737301s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 163.499756s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 85.637257s
+nr. 22
+5280x5280
+Thu Jan 26 10:49:54 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 662.213505s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 161.091673s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 53.041225s
+nr. 23
+5520x5520
+Thu Jan 26 11:04:32 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 713.598830s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 200.770856s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 60.648698s
+nr. 24
+5760x5760
+Thu Jan 26 11:20:48 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 765.340819s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 191.256798s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 57.587911s
+nr. 25
+6000x6000
+Thu Jan 26 11:37:44 CET 2017
+Sequential
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+prevent super optimized O3 magic haha 0
+time 843.492141s
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 219.477296s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 63.870587s

@@ -1,0 +1,117 @@
+nr. 1
+4 threads
+Sun Jan 29 19:04:14 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 35.388588s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 95.240849s
+nr. 2
+8 threads
+Sun Jan 29 19:06:26 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 33.121111s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 88.408080s
+nr. 3
+12 threads
+Sun Jan 29 19:08:28 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 41.675176s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 51.663050s
+nr. 4
+16 threads
+Sun Jan 29 19:10:02 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 44.659240s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 53.100204s
+nr. 5
+20 threads
+Sun Jan 29 19:11:41 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 47.918049s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 38.972935s
+nr. 6
+24 threads
+Sun Jan 29 19:13:09 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 51.381005s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 34.836811s
+nr. 7
+28 threads
+Sun Jan 29 19:14:36 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+height is not dividable by number of threads
+Usage: gameoflife -w num -h num -g num -m num
+-w ... matrix width
+-h ... matrix height
+-g ... generations
+-m ... mode (0=normal, 1=openmp, 2=...)
+NOTE: when using openmp/cilk then height must be dividable through the number of threads
+nr. 8
+32 threads
+Sun Jan 29 19:14:36 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 57.163580s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 25.246595s
+nr. 9
+36 threads
+Sun Jan 29 19:15:59 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+height is not dividable by number of threads
+Usage: gameoflife -w num -h num -g num -m num
+-w ... matrix width
+-h ... matrix height
+-g ... generations
+-m ... mode (0=normal, 1=openmp, 2=...)
+NOTE: when using openmp/cilk then height must be dividable through the number of threads
+nr. 10
+40 threads
+Sun Jan 29 19:15:59 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 65.849381s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 24.761879s
+nr. 11
+44 threads
+Sun Jan 29 19:17:30 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+height is not dividable by number of threads
+Usage: gameoflife -w num -h num -g num -m num
+-w ... matrix width
+-h ... matrix height
+-g ... generations
+-m ... mode (0=normal, 1=openmp, 2=...)
+NOTE: when using openmp/cilk then height must be dividable through the number of threads
+nr. 12
+48 threads
+Sun Jan 29 19:17:30 CET 2017
+OpenMP
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 55.419751s
+Cilk
+./gameoflife: /opt/intel/lib/intel64/libcilkrts.so.5: no version information available (required by ./gameoflife)
+time 24.005767s
