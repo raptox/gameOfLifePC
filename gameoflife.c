@@ -195,8 +195,6 @@ void computeGameMatrix(unsigned char ** gameMatrix, int width, int height, int x
 }
 
 /**
- * here some detailed comments :)
- *
  * . nw . n . ne
  * .  w . c . e
  * . sw . s . se
@@ -204,14 +202,13 @@ void computeGameMatrix(unsigned char ** gameMatrix, int width, int height, int x
 unsigned char lifeFunction(int nw, int n, int ne, int w, int c, int e, int sw, int s, int se) {
     int living = nw + n + ne + w + e + sw + s + se;
     if (c == 0) {
-      if (living == 3) return 1;
-      return 0;
-  }
-  else {
-      if (living < 2) return 0;
-      if (living > 3) return 0;
-      return 1;
-  }
+        if (living == 3) return 1;
+        return 0;
+    } else {
+        if (living < 2) return 0;
+        if (living > 3) return 0;
+        return 1;
+    }
 }
 
 unsigned char setValuesCode(unsigned char currentCode, int alive, unsigned char switchValuesFlag) {
